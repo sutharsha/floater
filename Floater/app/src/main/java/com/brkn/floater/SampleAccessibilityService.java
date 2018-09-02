@@ -19,9 +19,9 @@ public class SampleAccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo rowNode = getRootInActiveWindow();
             if (rowNode != null) {
                 for (int i = 0; i < rowNode.getChildCount(); i++) {
-                        AccessibilityNodeInfo accessibilityNodeInfo = rowNode.getChild(i);
-                    if (accessibilityNodeInfo.isEditable()){
-                        if(accessibilityNodeInfo.isFocused()) {
+                    AccessibilityNodeInfo accessibilityNodeInfo = rowNode.getChild(i);
+                    if (accessibilityNodeInfo.isEditable()) {
+                        if (accessibilityNodeInfo.isFocused()) {
                             accessibilityNodeInfo.performAction(AccessibilityNodeInfoCompat.ACTION_PASTE);
                             return;
                         }
