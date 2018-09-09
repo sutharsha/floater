@@ -3,15 +3,19 @@ package com.brkn.floater;
 import android.app.*;
 import android.content.*;
 import android.graphics.*;
+import android.media.*;
 import android.os.*;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
+import android.provider.*;
 
 public class FloatingViewService extends Service {
 
     final String MIMETYPE_TEXT_PLAIN = "text/plain";
     private WindowManager mWindowManager;
     private View mFloatingView;
+	private TextView stateTextView;
 
     public FloatingViewService() {
     }
@@ -79,7 +83,59 @@ public class FloatingViewService extends Service {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(FloatingViewService.this, "Playing the song.", Toast.LENGTH_LONG).show();
+              /*  Toast.makeText(FloatingViewService.this, "Playing the song.", Toast.LENGTH_LONG).show();
+				String command = "navigate home by public transport";
+				Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+				intent.setClassName("com.google.android.googlequicksearchbox", "com.google.android.googlequicksearchbox.SearchActivity");
+				intent.putExtra("query", command);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //necessary if launching from Service
+				startActivity(intent);	
+				
+				*/
+				/*
+				String title = "Bring me to life";
+
+				//Intent intent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH);
+				
+				//Intent intent = new Intent("com.google.android.music");
+				
+				Intent intent = getPackageManager().getLaunchIntentForPackage("com.google.android.music");
+				//startActivity(intent);*
+				
+				//intent.putExtra(MediaStore.EXTRA_MEDIA_FOCUS,
+						//		MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE);
+						
+				intent.putExtra(MediaStore.EXTRA_MEDIA_ARTIST,"Evanescence");
+				intent.putExtra(MediaStore.EXTRA_MEDIA_ALBUM,"Fallen");
+				
+				intent.putExtra(MediaStore.EXTRA_MEDIA_TITLE,title);               
+				intent.putExtra(SearchManager.QUERY,title);
+				if (intent.resolveActivity(getPackageManager()) != null) {
+					startActivity(intent);
+				}
+				*/
+				
+				
+				//Intent i = getPackageManager().getLaunchIntentForPackage("com.google.android.music");
+				
+				Intent i = new Intent("com.android.music.musicservicecommand");
+				//i.putExtra("command", "play");
+				i.putExtra("command", MediaPlayer.CMDPLAY);
+				sendBroadcast(i);
+
+				AudioManager manager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+				if(manager.isMusicActive())
+				{
+					// do something - or do it not
+					Toast.makeText(FloatingViewService.this, "Music active", Toast.LENGTH_SHORT).show();
+					
+					//Toast.makeText(FloatingViewService.this, "Music active", Toast.LENGTH_LONG).show();
+					
+				}else{
+					Intent intent = getPackageManager().getLaunchIntentForPackage("com.google.android.music");
+					startActivity(intent);
+				}
+				
             }
         });
 
@@ -112,6 +168,11 @@ public class FloatingViewService extends Service {
                     pasteData = item.getText().toString();
                     Toast.makeText(FloatingViewService.this, pasteData + "Playing next song.", Toast.LENGTH_LONG).show();
                 }
+				
+				
+				Intent i = new Intent("com.android.music.musicservicecommand");
+				i.putExtra("command", MediaPlayer.CMDNEXT);
+				sendBroadcast(i);
 
             }
         });
@@ -123,6 +184,11 @@ public class FloatingViewService extends Service {
             public void onClick(View v) {
                 Toast.makeText(FloatingViewService.this, "Playing previous song.", Toast.LENGTH_LONG).show();
                 startService(new Intent(FloatingViewService.this, SampleAccessibilityService.class));
+				
+				Intent i = new Intent("com.android.music.musicservicecommand");
+				i.putExtra("command", MediaPlayer.CMDPREVIOUS);
+				sendBroadcast(i);
+				
             }
         });
 
@@ -199,6 +265,19 @@ public class FloatingViewService extends Service {
                 return false;
             }
         });
+		
+		
+		stateTextView = mFloatingView.findViewById(R.id.stateTv);
+		stateTextView.setText("hdhd");
+		
+		
+		IntentFilter musicPauseFilter = new IntentFilter(
+			"android.media.action.CLOSE_AUDIO_EFFECT_CONTROL_SESSION");
+		IntentFilter musicPlayFilter = new IntentFilter(
+			"android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+
+		registerReceiver(musicPlay, musicPlayFilter);
+		registerReceiver(musicPause, musicPauseFilter);
     }
 
     /**
@@ -217,4 +296,26 @@ public class FloatingViewService extends Service {
             mWindowManager.removeView(mFloatingView);
         }
     }
+	
+	
+	// Broadcast Receiver for Music play.
+    private BroadcastReceiver musicPlay = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+            Log.v("gaurav", "Music play started");
+			stateTextView.setText("Music play started");
+		}
+    };
+
+    // Broadcast Receiver for Music pause.
+    private BroadcastReceiver musicPause = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+            Log.v("gaurav", "Music paused");
+			stateTextView.setText("Music paused");
+		}
+    };
+	
 }
